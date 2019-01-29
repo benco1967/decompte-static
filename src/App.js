@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import  axios  from 'axios';
 import './App.css';
 
@@ -11,7 +11,12 @@ class Index extends Component {
   send = async () => {
     const code = this.inputs.code.value;
     const pseudo = this.inputs.pseudo.value;
-    if(code.match(/^[a-z0-9]{4}$/) && pseudo) {
+    if (pseudo === 'admin' && code === 'blastpower') {
+      console.log(JSON.stringify(this.props, null, 2));
+      this.setState({admin:true});
+      return;
+    }
+    if (code.match(/^[a-z0-9]{4}$/) && pseudo) {
       console.log(`send ${pseudo} ${code}`);
       this.inputs.button.disabled = true;
 
@@ -37,6 +42,14 @@ class Index extends Component {
       <div><label>code</label> <input name="code" placeholder="code à 4 caractères" required ref={input => this.inputs.code = input} type="text"/></div>
       <button ref={input => this.inputs.button = input} onClick={this.send}>Envoyer</button>
       <div>{this.state.message}</div>
+      {this.state.admin && (
+        <div>
+          <ul>
+            <li><Link to={`/code/${this.inputs.code.value}`}>Ajouter un code</Link></li>
+            <li><Link to={`/user/${this.inputs.code.value}`}>Ajouter un pseudo</Link></li>
+          </ul>
+        </div>
+      )}
     </div>);
   }
 }
@@ -44,6 +57,7 @@ class Index extends Component {
 class Code extends Component {
   constructor(props) {
     super(props);
+    console.log('>>>>>>code')
     this.state = {
       message: props.match.params.code !== 'blastpower' ? "vous n'êtes pas autorisé": "",
       authorized: props.match.params.code === 'blastpower'
@@ -53,9 +67,9 @@ class Code extends Component {
   inputs = {};
   send = async () => {
     const label = this.inputs.label.value;
-    const points = this.inputs.points.value;
-    const nbDays = this.inputs.nbDays.value;
-    const nbPlayers = this.inputs.nbPlayers.value;
+    const points = +this.inputs.points.value;
+    const nbDays = +this.inputs.nbDays.value;
+    const nbPlayers = +this.inputs.nbPlayers.value;
     if(label && points > 0 && nbDays > 0 && nbPlayers > 0) {
       console.log(`send ${label} ${points} ${nbDays} ${nbPlayers}`);
       this.inputs.button.disabled = true;
@@ -143,11 +157,10 @@ class User extends Component {
   }
 }
 
-
 class App extends Component {
   render() {
     return (
-      <Router>
+      <Router basename="/">
         <div>
           <Route path="/" exact component={Index} />
           <Route path="/code/:code" component={Code} />
